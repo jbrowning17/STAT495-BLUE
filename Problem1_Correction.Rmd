@@ -17,6 +17,8 @@ output:
 ```{r, setup, include=FALSE}
 require(mdsr)   # Load additional packages here 
 require(NHANES)
+require(cowplot)
+require(xtable)
 # Some customization.  You can alter or delete as desired (if you know what you are doing).
 trellis.par.set(theme=theme.mosaic()) # change default color scheme for lattice
 knitr::opts_chunk$set(
@@ -94,11 +96,44 @@ There sample is unimodal with the highest number of people having a family incom
 
 ```{r}
 mod <- lm(BMI ~ PhysActive + Age + Gender + Poverty + alcoholavg + Age*alcoholavg, data=train)
-summary(mod)
 ```
 
-The coefficients of the model for PhysActiveInactive, Age, Gendermale, Poverty, alcoholavg, and age:alcoholavg are 1.734, .0172, .307, -.224, .041, -.00974 respectively. This means that those who are NOT physically active have a BMI that is higher by 1.734 on average than those who are not physically active. For a one year age increase, after accounting for other variables, the BMI would be expected to increase by .0172. On average, males have a BMI .307 higher than females. For a one unit increase in poverty ratio, after accounting for other variables, we would expect BMI to decrease by .224. As you drink more alcohol we would expect your BMI to increase, but the older you are, the effect that alcohol has on your BMI decreases.
+```{r, echo=FALSE}
+summ_mod<-summary(mod)
+```
 
+```{r, echo=FALSE, results='asis', fig.height=4, fig.width=4}
+xtable(summ_mod)
+```
+
+Accounting for all other factors, the estimated mean BMI of a population of females who are physically active is 27.91. Furthermore, we see that the mean BMI for a population who are physically inactive is 1.73 more than that of a physically active population. Then, if a person is male, we see that the mean BMI for this population is 0.31 higher as compare to the mean BMI of a female population. In addition, with each unit increase in the average number of drinks consumed per day over the past year average, the mean BMI increases by 0.04. Furthermore, this model tells us that the mean BMI of a population increases by 0.02 for each additional year in someone's age and this mean BMI actually decreases by 0.22 with each 1 unit increase in the ratio of family income to poverty guidelines. Finally, we see that the mean BMI decrease by 0.01 for each unit increase in age and alcohol average. 
+
+Something else we can note from this model is that it also tells us that all of these factors are statistically significant at the 0.05 $\alpha$ level with the exception of `Gender`, `alcoholavg`, and the `Age`*`alcoholavg` interaction term.
+
+#Model Assesment
+
+To check the appropriateness of our model we checked the following assumptions: 
+
+*Linearity*
+```{r, echo=FALSE}
+age_p<-ggplot(data=train, aes(x=Age, y=BMI)) + geom_point() + stat_smooth(method=loess) + labs(x="Age (years)") + theme(axis.title=element_text(size=10),
+        axis.text=element_text(size=7))
+poverty_p<-ggplot(data=train, aes(x=Poverty, y=BMI)) + geom_point() + stat_smooth(method=loess) + labs(x="Poverty\n(ratio of family income)")+  theme(axis.title=element_text(size=10),
+        axis.text=element_text(size=7))
+alcoholavg_p<-ggplot(data=train, aes(x=alcoholavg, y=BMI)) + geom_point() + stat_smooth(method=loess) + labs(x="Average Alcohol Consumption\n(number of drinks/day/year)") + theme(axis.title=element_text(size=10),
+        axis.text=element_text(size=7))
+```
+
+```{r, echo=FALSE, warning=FALSE, fig.align='center', fig.height=4, fig.width=6}
+plot_grid(age_p, poverty_p, alcoholavg_p, ncol = 3, align = 'h')
+```
+
+The xy plot of BMI vs. Age and Poverty shows that there is a lot of noise in the data. This inhibits our ability to make a determination of lineary between these variables and BMI. The BMI vs. Average Alcohol Consumption also shows a lot of noise, but we also see that most of the data is accumulated to the left with a few outliers to the right showing high leverage. Linearity also does not seem to be met in this case.
+
+*Normality*
+
+
+*Equal Variance*
 ```{r}
 ggplot(mod, aes(.fitted, .resid)) + 
   geom_point() + 
