@@ -34,12 +34,11 @@ Be sure to report RMSE for the training set and for the test set.
 ```{r}
 set.seed(1994)
 NHANES <- NHANES %>% mutate(alcoholavg = AlcoholDay * AlcoholYear / 365) %>% 
-  mutate(alcoholavg = ifelse(is.na(alcoholavg), 0, alcoholavg))
+  mutate(alcoholavg = ifelse(is.na(alcoholavg), 0, alcoholavg)) %>%
+  mutate(PhysActive = ifelse(PhysActive == "Yes", "Active", "Inactive"))
 rows <- sample(1:nrow(NHANES), 8000)
-train <- NHANES[rows,]
-dim(train)
-test <- NHANES[-rows,]
-dim(test)
+train <- NHANES[rows,] %>% filter(Age >= 18)
+test <- NHANES[-rows,] %>% filter(Age >= 18)
 ```
 
 Your report should provide background on these data, describe the analytic sample, fit and interpret the model, and undertake model assessment.  You should include one figure that summarizes key findings.
@@ -97,12 +96,13 @@ rsquared <- 1 - sum(test2$sqerror)/sum((test2$BMI - mean(test2$BMI))^2)
 
 The root mean squared error is 6.69 for the test set and 6.59 for the training set. This shows that the model performs similarly for both the data it was fitted for and the data it was tested against. While the performance is consistent across the two datasets, the rmse values are very high relative to the values that the BMI takes. The average value of BMI is around 26 which is only around 4 times as large as the rmse. Additionally, the $R^2$ value is 0.0535, which shows that only slightly more than 5% of the variability in BMI is captured by the model. Overall, these measures show that the model is not a great fit for the data and that the actual predictive value of the model is not very good. I looked at the scatterplots of the different predictors against BMI but there seems to be a lot of noise. There doesn't seem to be an obvious relationship, so I believe that not even a transformation would help.
 
-```{r}
+```{r, fig.height = 6, fig.width = 12}
 ggplot(data=test2, aes(x=Age, y=BMI)) + 
   geom_point()  + aes(colour=Gender) + 
-  facet_wrap(~PhysActive, ncol=4)  + stat_smooth(method=lm) + 
+  facet_wrap(~PhysActive, ncol=2)  + stat_smooth(method=lm, size=3) + 
   theme(legend.position="top") + 
-  labs(title="Age Vs BMI by Gender and Whether Physically Active") 
+  labs(title="Age Vs BMI by Gender and Whether Physically Active") +
+  theme(axis.text = element_text(size = 12))
 ```
 
 The purpose of this plot is to demonstrate how noisy the variables actually are. An initial look at the graph seems to show that there is almost difference in BMI for different ages, for different genders, or for different levels of physical activity. However, as the model indicates, there is some slight differences. The lines in the graph show that those who are physically active seem to have a lower BMI than those who are not. And those who are very young seem to have generally on average seem to have a lower BMI. This plot confirms the findings from our model: while there may be differences in BMI based on the different predictors, the differences themselves are very very small, and it's difficult to perceive them as the data is very noisy. In this case, since the model is still able to capture around 5.3% of the variability in such a noisy dataset, it may not be as bad as the diagnosis above suggests.
