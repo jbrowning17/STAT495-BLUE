@@ -72,7 +72,18 @@ mod <- lm(BMI ~ PhysActive + Age + Gender + Poverty + alcoholavg + Age*alcoholav
 summary(mod)
 ```
 
-The coefficients of the model for PhysActiveYes, Age, Gendermale, Poverty, alcoholavg, and age:alcoholavg are -1.705, .063, .156, -.258, .978, -.027 respectively. This means that those who are physically active have a BMI that is lower by 1.705 on average than those who are not physically active. For a one year age increase, after accounting for other variables, the BMI would be expected to increase by .063. On average, males have a .156 high BMI than females. For a one unit increase in poverty ratio, after accounting for other variables, we would expect BMI to decrease by .258. As you drink more alcohol we would expect your BMI to increase, but the older you are, the effect that alcohol has on your BMI decreases.
+The coefficients of the model for PhysActiveInactive, Age, Gendermale, Poverty, alcoholavg, and age:alcoholavg are 1.734, .0172, .307, -.224, .041, -.00974 respectively. This means that those who are NOT physically active have a BMI that is higher by 1.734 on average than those who are not physically active. For a one year age increase, after accounting for other variables, the BMI would be expected to increase by .0172. On average, males have a BMI .307 higher than females. For a one unit increase in poverty ratio, after accounting for other variables, we would expect BMI to decrease by .224. As you drink more alcohol we would expect your BMI to increase, but the older you are, the effect that alcohol has on your BMI decreases.
+
+```{r}
+ggplot(mod, aes(.fitted, .resid)) + 
+  geom_point() + 
+  geom_hline(yintercept = 0) +
+  xlab("Fitted Values") +
+  ylab("Residuals") +
+  labs(title = "Residuals vs. Fitted Plot")
+```
+
+The constant variance condition of errors does not hold. As the fitted values become larger, the variance of the residuals become larger and larger. Also, the normality condition of the residuals does not hold either. Again as the fitted values increase, the residuals take on more and larger positive values. So the distribution of residuals skews right as the fitted values increase.
 
 ```{r}
 test$predictVal <- predict(mod, test)
@@ -94,7 +105,7 @@ median(NHANES$BMI, na.rm = TRUE) # median of BMI values
 rsquared <- 1 - sum(test2$sqerror)/sum((test2$BMI - mean(test2$BMI))^2)
 ```
 
-The root mean squared error is 6.69 for the test set and 6.59 for the training set. This shows that the model performs similarly for both the data it was fitted for and the data it was tested against. While the performance is consistent across the two datasets, the rmse values are very high relative to the values that the BMI takes. The average value of BMI is around 26 which is only around 4 times as large as the rmse. Additionally, the $R^2$ value is 0.0535, which shows that only slightly more than 5% of the variability in BMI is captured by the model. Overall, these measures show that the model is not a great fit for the data and that the actual predictive value of the model is not very good. I looked at the scatterplots of the different predictors against BMI but there seems to be a lot of noise. There doesn't seem to be an obvious relationship, so I believe that not even a transformation would help.
+The root mean squared error is 6.292 for the test set and 6.699 for the training set. This shows that the model performs similarly for both the data it was fitted for and the data it was tested against, although the rmse is slightly higher for the training set. While the performance is consistent across the two datasets, the rmse values are very high relative to the values that the BMI takes. The average value of BMI is around 26 which is only around 4 times as large as the rmse. Additionally, the $R^2$ value is 0.0535, which shows that only slightly more than 5% of the variability in BMI is captured by the model. Overall, these measures show that the model is not a great fit for the data and that the actual predictive value of the model is not very good. I looked at the scatterplots of the different predictors against BMI but there seems to be a lot of noise. There doesn't seem to be an obvious relationship, so I believe that not even a transformation would help.
 
 ```{r, fig.height = 6, fig.width = 12}
 ggplot(data=test2, aes(x=Age, y=BMI)) + 
