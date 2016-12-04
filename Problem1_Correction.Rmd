@@ -36,11 +36,11 @@ Be sure to report RMSE for the training set and for the test set.
 ```{r}
 set.seed(1994)
 NHANES <- NHANES %>% mutate(alcoholavg = AlcoholDay * AlcoholYear / 365) %>% 
-  mutate(alcoholavg = ifelse(is.na(alcoholavg), 0, alcoholavg)) %>%
+  filter(Age >= 18) %>%
   mutate(PhysActive = ifelse(PhysActive == "Yes", "Active", "Inactive"))
-rows <- sample(1:nrow(NHANES), 8000)
-train <- NHANES[rows,] %>% filter(Age >= 18)
-test <- NHANES[-rows,] %>% filter(Age >= 18)
+rows <- sample(1:nrow(NHANES), 4*(7481)/5)
+train <- NHANES[rows,] 
+test <- NHANES[-rows,] 
 ```
 
 Your report should provide background on these data, describe the analytic sample, fit and interpret the model, and undertake model assessment.  You should include one figure that summarizes key findings.
@@ -55,7 +55,7 @@ The NHANES dataset is survey data from 2009-2012 gathered by the US National Cen
 
 ##Sample Description
 
-To fit the model a random sample of 8000 was taken from the NHANES dataset, which will be called our training dataset. Because alcohol consumption was not recorded for those below 18, we have chosen to remove those below 18 years old. We couldn't just code these values to 0, since the fact that they were nto recorded does not necessarily mean that the amount of alcohol consumed for those below 18 was 0. After taking out all those below 18 for our training dataset, we are left with 5984 observations. 
+To fit the model a random sample of 8000 was taken from the NHANES dataset, which will be called our training dataset. Because alcohol consumption was not recorded for those below 18, we have chosen to remove those below 18 years old. We couldn't just code these values to 0, since the fact that they were not recorded does not necessarily mean that the amount of alcohol consumed for those below 18 was 0. After taking out all those below 18 for our training dataset, we are left with 5984 observations. 
 
 The following is a list of variables that we are concerned with and a look at them in our training dataset:
 
