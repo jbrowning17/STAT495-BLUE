@@ -55,48 +55,41 @@ The NHANES dataset is survey data from 2009-2012 gathered by the US National Cen
 
 ##Sample Description
 
-To fit the model a random sample of 8000 was taken from the NHANES dataset, which will be called our training dataset. Because alcohol consumption was not recorded for those below 18, we have chosen to remove those below 18 years old. We couldn't just code these values to 0, since the fact that they were not recorded does not necessarily mean that the amount of alcohol consumed for those below 18 was 0. After taking out all those below 18 for our training dataset, we are left with 5984 observations. 
+To fit the model a random sample of 5984 was taken from the NHANES dataset, which will be called our training dataset. This training dataset is 4/5 of the original NHANES, where there were 7481 observations after filtering for those above 18. We have chosen to remove those below 18 because alcohol consumption was not recorded for those below 18. We couldn't just code these values to 0, since the fact that they were not recorded does not necessarily mean that the amount of alcohol consumed for those below 18 was 0.
 
 The following is a list of variables that we are concerned with and a look at them in our training dataset:
 
 ```{r, echo=FALSE, fig.width=6, fig.height=4, fig.align='center'}
-par(mfrow=c(2,3))
+par(mfrow=c(2,2))
 hist(train$BMI, xlab = "BMI", main = "Histogram of BMI", xlim = c(15, 50))
-barplot(table(train$PhysActive)/5984, xlab = "Physically Active", ylab = "Proportion", main = "Proportion of \nPhysically Active")
-hist(train$alcoholavg, xlab = "Alcohol Average", main = "Histogram of Alcohol Avg", xlim = c(0, 6))
-hist(train$Age, xlab = "Age", main = "Histogram of Age")
-barplot(table(train$Gender)/5984, xlab = "Gender", ylab = "Proportion", main = "Proportion of Gender")
-hist(train$Poverty, xlab = "Poverty", main = "Histogram of Poverty")
+hist(train$alcoholavg, breaks = 20, xlab = "Alcohol Average", main = "Histogram of Alcohol Avg", xlim = c(0, 3))
+hist(train$Age, xlab = "Age (years)", main = "Histogram of Age")
+hist(train$Poverty, xlab = "Poverty ratio", main = "Histogram of Poverty")
 ```
 
-`BMI` - Body mass index calculated by $\frac{weight}{height^2}$ in $\frac{kg}{m^2}$
+**BMI:** \newline
+Body mass index calculated by $\frac{weight}{height^2}$ in $\frac{kg}{m^2}$. The distribution of BMI is nearly normal, though it is slightly right-skewed. Most of the values seem to lie within the 20-30 range. There are 50 missing data points for BMI. 
 
-The distribution of BMI is nearly normal, though it is slightly right-skewed. Most of the values seem to lie within the 20-30 range. There are 53 missing data points for BMI. 
+**PhysActive:** \newline
+A dichotomous variable. Inactive or active depending on the answer to the question, does the participant do moderate or vigorous-intensity sports or recreational activities? (Inactive for no and active for yes).
 
+There are slightly more physically active people in this sample than not, with 52.97% being physically active and 47.02% being not. There are no missing data points for physically active. 
 
-`PhysActive` - A dichotomous variable. Inactive or active depending on the answer to the question, does the participant do moderate or vigorous-intensity sports or recreational activities? (Inactive for no and active for yes).
+**alcoholavg:** \newline
+The average number of drinks consumed per day over the past year. This was found by multiplying the AlcoholDay variable which is the average number of drinks consumed on days that participant drank alcoholic beverages and the AlcoholYear variable which is the estimated number of days over the past year that participant drank alcoholic beverages then we divided by 365 to get the average. This was done because the original variables concerning alcohol were not a comprehensive in their description of alcoholic behavior. This new coded variable tries to account for both frequency and quantity of drinking. 
 
-There are slightly more physically active people in this sample than not, with 52.24% being physically active and 47.76% being not. There are no missing data points for physically active. 
+Nearly all have less than one drink per day. There are some high outliers with a max of 23 drinks per day on average during the year, so the distribution is right skewed. There are 2045 missing data points for alcohol average. 
 
+**Age:** \newline 
+The age in years of the study participant at the time of the screening. For the age range 20-60, the proportion of people at each age seems to be relatively the same. However, there are fewer people in the dataset who are under 20 and over 60. There are no missing data points for age. 
 
-`alcoholavg` - The average number of drinks consumed per day over the past year. This was found by multiplying the AlcoholDay variable which is the average number of drinks consumed on days that participant drank alcoholic beverages and the AlcoholYear variable which is the estimated number of days over the past year that participant drank alcoholic beverages then we divided by 365 to get the average. This was done because the original variables concerning alcohol were not a comprehensive in their description of alcoholic behavior. This new coded variable tries to account for both frequency and quantity of drinking. 
+**Gender:** \newline
+Gender of participant coded as male or female. The number of males and females are roughly equal, with 49.21% of the sample being male and 50.79% being female. There are no missing data points for gender. 
 
-Nearly all have less than one drink per day. There are some high outliers with a max of 23 drinks per day on average during the year, so the distribution is right skewed. There are no missing data points for alcohol average (as we removed those who were under the age 18 earlier). 
+**Poverty:** \newline
+Ratio of family income to poverty guidelines. Kept the ratio instead of using an indicator variable. This way the model gets more information about their income rather than just that they are above/below the poverty line.
 
-`Age` - The age in years of the study participant at the time of the screening
-
-For the age range 20-60, the proportion of people at each age seems to be relatively the same. However, there are fewer people in the dataset who are under 20 and over 60. There are no missing data points for age. 
-
-
-`Gender` - Gender of participant coded as male or female
-
-The number of males and females are roughly equal, with 49.3% of the sample being male and 50.7% being female. There are no missing data points for gender. 
-
-
-`Poverty` - Ratio of family income to poverty guidelines. Kept the ratio instead of using an indicator variable. This way the model gets more information about their income rather than just that they are above/below the poverty line.
-
-There sample is bimodal. However, the first mode is the much less frequent value. There is a peak around the poverty value 1 which shows that those who are poorer generally have family incomes close to the poverty level. The other peak is around the value 5. This shows there is a significant proportion of people who have family incomes greater than the poverty line by a factor of 5+ . There are 467 missing data points here. 
-
+There sample is bimodal. However, the first mode is the much less frequent value. There is a peak around the poverty value 1 which shows that those who are poorer generally have family incomes close to the poverty level. The other peak is around the value 5. This shows there is a significant proportion of people who have family incomes greater than the poverty line by a factor of 5+ . There are 461 missing data points here. 
 
 ##Our model
 ```{r}
