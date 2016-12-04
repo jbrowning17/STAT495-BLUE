@@ -93,7 +93,7 @@ There sample is bimodal. However, the first mode is the much less frequent value
 
 ##Our model
 ```{r}
-mod <- lm(BMI ~ PhysActive + Age + Gender + Poverty + alcoholavg + Age*alcoholavg, data=train)
+mod <- lm(BMI ~ PhysActive + Age + Gender + Poverty + alcoholavg + Age*alcoholavg, data=train, na.action = na.exclude)
 ```
 
 ```{r, echo=FALSE}
@@ -107,62 +107,7 @@ xtable(summ_mod)
 
 In this model, we see that the mean BMI for a population who are physically inactive is 1.73 more than that of a physically active population. Then, if a person is male, we see that the mean BMI for this population is 0.31 higher as compare to the mean BMI of a female population. In addition,accounting for other factors, with each unit increase in the average number of drinks consumed per day over the past year average, the mean BMI increases by 0.04. Furthermore, this model tells us that the mean BMI of a population increases by 0.02 for each additional year in someone's age and this mean BMI actually decreases by 0.22 with each 1 unit increase in the ratio of family income to poverty guidelines. Finally, we see that the mean BMI decrease by 0.01 for each unit increase in age and alcohol average. 
 
-Something else we can note from this model is that it also tells us that all of these factors are statistically significant at the 0.05 $\alpha$ level with the exception of `Gender`, `alcoholavg`, and the `Age`*`alcoholavg` interaction term. This is an indicator that these variables perhaps do not add much predictive value. Furthermore, the $R^2$ value for this model was only 0.03 which means that a lot of the variability of the dataset is unaccounted by the model. If we were to recreate the model, we would heavily consider removing the aformentioned variables since they do not exhibit statistical significance or improve $R^2$. 
-
-##Model Assesment
-
-###LINE
-
-To check the appropriateness of our model we checked the following assumptions: 
-
-*Linearity*
-```{r, echo=FALSE}
-age_p<-ggplot(data=train, aes(x=Age, y=BMI)) + geom_point() + stat_smooth(method=loess) + labs(x="Age (years)") + theme(axis.title=element_text(size=10),
-        axis.text=element_text(size=7))
-poverty_p<-ggplot(data=train, aes(x=Poverty, y=BMI)) + geom_point() + stat_smooth(method=loess) + labs(x="Poverty\n(ratio of family income)")+  theme(axis.title=element_text(size=10),
-        axis.text=element_text(size=7))
-alcoholavg_p<-ggplot(data=train, aes(x=alcoholavg, y=BMI)) + geom_point() + stat_smooth(method=loess) + labs(x="Average Alcohol\nConsumption\n(number of drinks\n/day/year)") + theme(axis.title=element_text(size=10),
-        axis.text=element_text(size=7))
-```
-
-```{r, echo=FALSE, warning=FALSE, fig.align='center', fig.height=3, fig.width=5}
-plot_grid(age_p, poverty_p, alcoholavg_p, ncol = 3, align = 'h')
-```
-
-The scatterplot plot of BMI vs. Age and Poverty shows that there is a lot of noise in the data. This inhibits our ability to make a determination of lineary between these variables and BMI. The BMI vs. Average Alcohol Consumption also shows a lot of noise, but we also see that most of the data is accumulated to the left with a few outliers to the right showing high leverage. Linearity also does not seem to be met in this case.
-
-*Normality*
-```{r,fig.keep='last', fig.align='center', fig.width=5, fig.height=3}
-qqmath(~residuals(mod))
-ladd(panel.qqmathline(residuals(mod)))
-```
-
-Based on the qqplot above we can see that our model does not meet the normality assumption because we can see that both tails of the residual distribution are highly skewed. 
-
-*Equal Variance*
-```{r, echo=FALSE, fig.align='center', fig.width=5, fig.height=3}
-ggplot(mod, aes(.fitted, .resid)) + 
-  geom_point() + 
-  geom_hline(yintercept = 0) +
-  xlab("Fitted Values") +
-  ylab("Residuals") +
-  labs(title = "Residuals vs. Fitted Plot")
-```
-
-The constant variance condition of errors does not hold. As the fitted values become larger, the variance of the residuals become larger and larger. Also, the normality condition of the residuals does not hold either. Again as the fitted values increase, the residuals take on more and larger positive values. So the distribution of residuals skews right as the fitted values increase.
-
-*Collinearity*
-
-```{r}
-corTrain <- cbind(train$Age, train$alcoholavg, train$Poverty)
-cor(corTrain, use = "complete.obs")
-```
-
-From the correlation matrix (ignoring the diagonals since we always expect one variable to have perfect correlation with itself), none of the three quantitative variables show a concerning level of correlation with each other. The correlation values are all below .15 so we can assume that there is no multicollinearity or only a little bit.
-
-*Independence*
-
-We assume independence because NHANES goes through a 4 stage sampling process in order to get their survey sample. First they sample counties, then segments within those counties, then households in those segments, and finally people within those households. Thus we can assume each observation in the sample is independent.
+Something else we can note from this model is that it also tells us that all of these factors are statistically significant at the 0.05 $\alpha$ level with the exception of `Gender`, `alcoholavg`, and the `Age`*`alcoholavg` interaction term. This is an indicator that these variables perhaps do not add much predictive value. Furthermore, the $R^2$ value for this model was only 0.03 which means that a lot of the variability of the dataset is unaccounted by the model. If we were to recreate the model, we would heavily consider removing the aformentioned variables since they do not exhibit statistical significance or improve $R^2$.
 
 ###Cross-Validation
 
@@ -189,6 +134,91 @@ rsquared <- 1 - sum(test2$sqerror)/sum((test2$BMI - mean(test2$BMI))^2)
 ```
 
 The root mean squared error is 6.292 for the test set and 6.699 for the training set. This shows that the model performs similarly for both the data it was fitted for and the data it was tested against, although the rmse is slightly higher for the training set. While the performance is consistent across the two datasets, the rmse values are very high relative to the values that the BMI takes. The average value of BMI is around 26 which is only around 4 times as large as the rmse. Additionally, the $R^2$ value is 0.02858, which shows that only 2.858% of the variability in BMI is captured by the model. Overall, these measures show that the model is not a great fit for the data and that the actual predictive value of the model is not very good. I looked at the scatterplots of the different predictors against BMI but there seems to be a lot of noise. There doesn't seem to be an obvious relationship, so I believe that not even a transformation would help.
+
+##Model Assesment
+
+###LINE
+
+To check the appropriateness of our model we checked the following assumptions: 
+
+*Linearity*
+
+To test the linearity assumption we look at scatterplots where a quantitative variable is on the x-axis and the residuals from the model are on the y-axis. In this case, there are three quantitative predictors so we look at three different scatterplots. If the linearity assumption is satisfied than the residuals would be symmetrically distributed across a horizontal line with roughly constant variance. If the linearity assumption is not satisfied there is generally some pattern or curvature that can be found in the data. For categorical variables, we will use boxplots.
+
+```{r, echo=FALSE}
+options(warn = -1)
+ggplot() + geom_point(aes(train$Age, residuals(mod))) +
+  xlab("Age") +
+  ylab("Residuals") +
+  labs(title = "Age vs. Residuals")
+```
+
+From this scatterplot, the residuals do seem to have roughly constant variance for all values of age, and that they are relatively symmetric across a horizontal line (although there are many more values with extreme positive residuals than extreme negative residuals). We say that the linearity condition is satisfied in this case.
+
+```{r, echo=FALSE}
+ggplot() + geom_point(aes(train$Poverty, residuals(mod))) +
+  xlab("Poverty Ratio") +
+  ylab("Residuals") +
+  labs(title = "Poverty Ratio vs. Residuals")
+```
+
+```{r, echo=FALSE}
+ggplot() + geom_point(aes(train$alcoholavg, residuals(mod))) +
+  xlab("Average Daily Alcohol Consumption") +
+  ylab("Residuals") +
+  labs(title = "Average Daily Alcohol Consumption vs. Residuals")
+```
+
+The linearity condition is not satisfied for the alcoholavg variable. Clearly the residual values are not symmetrically distributed across a horizontal line. In addition, there is a point with high leverage. It may be prudent to see what happens to the model if we remove this outlier.
+
+```{r, echo=FALSE}
+ggplot() + geom_boxplot(aes(train$PhysActive, residuals(mod))) +
+  xlab("Average Daily Alcohol Consumption") +
+  ylab("Residuals") +
+  labs(title = "Average Daily Alcohol Consumption vs. Residuals")
+```
+
+```{r, echo=FALSE}
+ggplot() + geom_boxplot(aes(train$Gender, residuals(mod))) +
+  xlab("Average Daily Alcohol Consumption") +
+  ylab("Residuals") +
+  labs(title = "Average Daily Alcohol Consumption vs. Residuals")
+```
+
+For both categorical variables, the box plots for each group within the variables looks relatively the same. The distribution 
+
+*Normality*
+```{r,fig.keep='last', fig.align='center', fig.width=5, fig.height=3}
+qqmath(~residuals(mod), ylab = "Residuals", main = "Quantile-Quantile Plot of Residuals")
+ladd(panel.qqmathline(residuals(mod)))
+```
+
+Based on the qqplot above we can see that our model does not meet the normality assumption because we can see that both tails of the residual distribution are highly skewed. 
+
+*Equal Variance*
+```{r, echo=FALSE, fig.align='center', fig.width=5, fig.height=3}
+ggplot() + 
+  geom_point(aes(fitted(mod), residuals(mod))) + 
+  geom_hline(yintercept = 0) +
+  xlab("Fitted Values") +
+  ylab("Residuals") +
+  labs(title = "Residuals vs. Fitted Plot")
+```
+
+The constant variance condition of errors does not hold. As the fitted values become larger, the variance of the residuals become larger and larger.
+
+*Collinearity*
+
+```{r}
+corTrain <- cbind(train$Age, train$alcoholavg, train$Poverty)
+cor(corTrain, use = "complete.obs")
+```
+
+From the correlation matrix (ignoring the diagonals since we always expect one variable to have perfect correlation with itself), none of the three quantitative variables show a concerning level of correlation with each other. The correlation values are all below .15 so we can assume that there is no multicollinearity or only a little bit.
+
+*Independence*
+
+We assume independence because NHANES goes through a 4 stage sampling process in order to get their survey sample. First they sample counties, then segments within those counties, then households in those segments, and finally people within those households. Thus we can assume each observation in the sample is independent.
 
 ##Visual Accounting for Noise
 
