@@ -33,7 +33,7 @@ Use the `NHANES` training dataset to fit and interpret a linear regression model
 Be sure to report RMSE for the training set and for the test set.
 
 
-```{r}
+```{r chunk1, echo=FALSE}
 set.seed(1994)
 NHANES <- NHANES %>% mutate(alcoholavg = AlcoholDay * AlcoholYear / 365) %>% 
   filter(Age >= 18) %>%
@@ -232,3 +232,8 @@ ggplot(data=test2, aes(x=Age, y=BMI)) +
 ```
 
 The purpose of this plot is to demonstrate how noisy the variables actually are. An initial look at the graph seems to show that there is almost no difference in BMI for different ages, for different genders, or for different levels of physical activity. However, as the model indicates, there is some slight differences. It is with the help of the lines in the graph that we can ascertain some of the small differences. The lines in the graph show that those who are physically active seem to have a lower BMI than those who are not. And those who are very young seem to have generally on average seem to have a lower BMI. This plot confirms the findings from our model: while there may be differences in BMI based on the different predictors, the differences themselves are very very small, and it's difficult to perceive them as the data is very noisy. In this case, since the model is still able to capture around 3.247% of the variability in such a noisy dataset, it may not be as bad as the diagnosis above suggests. Another thing to note from the plot is that for those who are inactive, age seems to be slightly negatively correlated with BMI for women and postively correlated for men. This could be something to explore in further analysis.  
+
+
+#Technical Appendix
+```{r chunk1, eval=FALSE}
+```
