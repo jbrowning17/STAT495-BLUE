@@ -106,9 +106,9 @@ options(xtable.comment=FALSE)
 xtable(summ_mod)
 ```
 
-In this model, we see that accounting for the effects of other variables, the mean BMI for a population who are physically inactive is 1.56 more than that of a physically active population. Then, if a person is male, accounting for other variables, we see that the mean BMI for this population is 0.81 higher as compare to the mean BMI of a female population. In addition, accounting for other factors, with each unit increase in the average number of drinks consumed per day over the past year average, the mean BMI decreases by 0.47. Furthermore, this model tells us that after accounting for the effects otf other variables the mean BMI of a population increases by 0.02 for each additional year in someone's age and this mean BMI actually decreases by 0.24 with each 1 unit increase in the ratio of family income to poverty guidelines. 
+In this model, we see that accounting for the effects of other variables, the mean BMI for a population who are physically inactive is 1.56 more than that of a physically active population. Then, if a person is male, accounting for other variables, we see that the mean BMI for this population is 0.81 higher as compare to the mean BMI of a female population. In addition, accounting for other factors, with each unit increase in the average number of drinks consumed per day over the past year average, the mean BMI decreases by 0.47. Furthermore, this model tells us that after accounting for the effects of other variables the mean BMI of a population increases by 0.02 for each additional year in someone's age and this mean BMI actually decreases by 0.24 with each 1 unit increase in the ratio of family income to poverty guidelines. 
 
-Something else we can note from this model is that it also tells us that all of these factors are statistically significant at the 0.05 $\alpha$ level. This is an indicator that these variables perhaps do not add much predictive value. Furthermore, the $R^2$ value for this model was only 0.03 which means that a lot of the variability of the dataset is unaccounted by the model. If we were to recreate the model, we would heavily consider removing the aformentioned variables since they do not exhibit statistical significance or improve $R^2$.
+Something else we can note from this model is that it also tells us that all of these factors are statistically significant at the 0.05 $\alpha$ level. This is an indicator that these variables perhaps do not add much predictive value. Furthermore, the $R^2$ value for this model was only 0.03 which means that a lot of the variability of the dataset is unaccounted by the model. If we were to recreate the model, we would heavily consider removing the aforementioned variables since they do not exhibit statistical significance or improve $R^2$.
 
 ###Cross-Validation
 
@@ -228,7 +228,7 @@ We assume independence because NHANES goes through a 4 stage sampling process in
 ##Visual Accounting for Noise
 
 ```{r, fig.height = 6, fig.width = 12}
-ggplot(data=test2, aes(x=Age, y=BMI)) + 
+ggplot(data=test2, aes(x=Poverty, y=BMI)) + 
   geom_point()  + aes(colour=Gender) + 
   facet_wrap(~PhysActive, ncol=2)  + stat_smooth(method=lm, size=3) + 
   theme(legend.position="top") + 
@@ -236,7 +236,7 @@ ggplot(data=test2, aes(x=Age, y=BMI)) +
   theme(axis.text = element_text(size = 12))
 ```
 
-The purpose of this plot is to demonstrate how noisy the variables actually are. An initial look at the graph seems to show that there is almost no difference in BMI for different ages, for different genders, or for different levels of physical activity. However, as the model indicates, there is some slight differences. It is with the help of the lines in the graph that we can ascertain some of the small differences. The lines in the graph show that those who are physically active seem to have a lower BMI than those who are not. And those who are very young seem to have generally on average seem to have a lower BMI. This plot confirms the findings from our model: while there may be differences in BMI based on the different predictors, the differences themselves are very very small, and it's difficult to perceive them as the data is very noisy. In this case, since the model is still able to capture around 3.247% of the variability in such a noisy dataset, it may not be as bad as the diagnosis above suggests. Another thing to note from the plot is that for those who are inactive, age seems to be slightly negatively correlated with BMI for women and postively correlated for men. This could be something to explore in further analysis.  
+The purpose of this plot is to demonstrate how noisy the variables actually are. An initial look at the graph seems to show that there is almost no difference in BMI based on poverty level, different genders, or for different levels of physical activity. However, as the model indicates, there are some slight differences. It is with the help of the lines in the graph that we can ascertain some of the small differences. The lines in the graph show that those who are physically active seem to have a lower BMI than those who are not. And those with a high family income have generally on average a lower BMI if they're female and a higher BMI if they're male. An observation that makes intuitive sense if you think about it. Finally, this plot confirms the findings from our model: while there may be differences in BMI based on the different predictors, the differences themselves are very,very small, and it's difficult to perceive them as the data is very noisy. In this case, since the model is still able to capture around 3.247% of the variability in such a noisy dataset, it may not be as bad as the diagnosis above suggests.
 
 
 #Technical Appendix
