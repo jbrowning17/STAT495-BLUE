@@ -37,8 +37,9 @@ Be sure to report RMSE for the training set and for the test set.
 set.seed(1994)
 NHANES <- NHANES %>% mutate(alcoholavg = AlcoholDay * AlcoholYear / 365) %>% 
   filter(Age >= 18) %>%
-  mutate(PhysActive = ifelse(PhysActive == "Yes", "Active", "Inactive"))
-rows <- sample(1:nrow(NHANES), 4*(7481)/5)
+  mutate(PhysActive = ifelse(PhysActive == "Yes", "Active", "Inactive")) %>%
+  filter(alcoholavg < 23)
+rows <- sample(1:nrow(NHANES), 4*(4912)/5)
 train <- NHANES[rows,] 
 test <- NHANES[-rows,] 
 ```
@@ -55,14 +56,14 @@ The NHANES dataset is survey data from 2009-2012 gathered by the US National Cen
 
 ##Sample Description
 
-To fit the model a random sample of 5984 was taken from the NHANES dataset, which will be called our training dataset. This training dataset is 4/5 of the original NHANES, where there were 7481 observations after filtering for those above 18. We have chosen to remove those below 18 because alcohol consumption was not recorded for those below 18. We couldn't just code these values to 0, since the fact that they were not recorded does not necessarily mean that the amount of alcohol consumed for those below 18 was 0.
+To fit the model a random sample of 3929 was taken from the NHANES dataset, which will be called our training dataset. This training dataset is 4/5 of the original NHANES, where there were 4912 observations after filtering for those above 18 and removing observations where there were missing values. We have chosen to remove those below 18 because alcohol consumption was not recorded for those below 18. We couldn't just code these values to 0, since the fact that they were not recorded does not necessarily mean that the amount of alcohol consumed for those below 18 was 0.
 
 The following is a list of variables that we are concerned with and a look at them in our training dataset:
 
 ```{r, echo=FALSE, fig.width=6, fig.height=4, fig.align='center'}
 par(mfrow=c(2,2))
 hist(train$BMI, xlab = "BMI", main = "Histogram of BMI", xlim = c(15, 50))
-hist(train$alcoholavg, breaks = 20, xlab = "Alcohol Average", main = "Histogram of Alcohol Avg", xlim = c(0, 3))
+hist(train$alcoholavg, breaks = 50, xlab = "Alcohol Average", main = "Histogram of Alcohol Avg", xlim = c(0, 3))
 hist(train$Age, xlab = "Age (years)", main = "Histogram of Age")
 hist(train$Poverty, xlab = "Poverty ratio", main = "Histogram of Poverty")
 ```
@@ -78,7 +79,7 @@ There are slightly more physically active people in this sample than not, with 5
 **alcoholavg:** \newline
 The average number of drinks consumed per day over the past year. This was found by multiplying the AlcoholDay variable which is the average number of drinks consumed on days that participant drank alcoholic beverages and the AlcoholYear variable which is the estimated number of days over the past year that participant drank alcoholic beverages then we divided by 365 to get the average. This was done because the original variables concerning alcohol were not a comprehensive in their description of alcoholic behavior. This new coded variable tries to account for both frequency and quantity of drinking. 
 
-Nearly all have less than one drink per day. There are some high outliers with a max of 23 drinks per day on average during the year, so the distribution is right skewed. There are 2045 missing data points for alcohol average. 
+Nearly all have less than one drink per day. There are some high outliers with a max of 23 drinks per day on average during the year, so the distribution is right skewed. The observation with 23 drinks per day on average was removed as upon further inspection. It was reported that he drank 82 drinks on average for every occasion he drank which is simply impossible. There were 2045 missing data points for alcohol average. 
 
 **Age:** \newline 
 The age in years of the study participant at the time of the screening. For the age range 20-60, the proportion of people at each age seems to be relatively the same. However, there are fewer people in the dataset who are under 20 and over 60. There are no missing data points for age. 
@@ -93,7 +94,7 @@ There sample is bimodal. However, the first mode is the much less frequent value
 
 ##Our model
 ```{r}
-mod <- lm(BMI ~ PhysActive + Age + Gender + Poverty + alcoholavg + Age*alcoholavg, data=train, na.action = na.exclude)
+mod <- lm(BMI ~ PhysActive + Age + Gender + Poverty + alcoholavg, data=train, na.action = na.exclude)
 ```
 
 ```{r, echo=FALSE}
@@ -105,9 +106,9 @@ options(xtable.comment=FALSE)
 xtable(summ_mod)
 ```
 
-In this model, we see that the mean BMI for a population who are physically inactive is 1.73 more than that of a physically active population. Then, if a person is male, we see that the mean BMI for this population is 0.31 higher as compare to the mean BMI of a female population. In addition,accounting for other factors, with each unit increase in the average number of drinks consumed per day over the past year average, the mean BMI increases by 0.04. Furthermore, this model tells us that the mean BMI of a population increases by 0.02 for each additional year in someone's age and this mean BMI actually decreases by 0.22 with each 1 unit increase in the ratio of family income to poverty guidelines. Finally, we see that the mean BMI decrease by 0.01 for each unit increase in age and alcohol average. 
+In this model, we see that accounting for the effects of other variables, the mean BMI for a population who are physically inactive is 1.56 more than that of a physically active population. Then, if a person is male, accounting for other variables, we see that the mean BMI for this population is 0.81 higher as compare to the mean BMI of a female population. In addition, accounting for other factors, with each unit increase in the average number of drinks consumed per day over the past year average, the mean BMI decreases by 0.47. Furthermore, this model tells us that after accounting for the effects otf other variables the mean BMI of a population increases by 0.02 for each additional year in someone's age and this mean BMI actually decreases by 0.24 with each 1 unit increase in the ratio of family income to poverty guidelines. 
 
-Something else we can note from this model is that it also tells us that all of these factors are statistically significant at the 0.05 $\alpha$ level with the exception of `Gender`, `alcoholavg`, and the `Age`*`alcoholavg` interaction term. This is an indicator that these variables perhaps do not add much predictive value. Furthermore, the $R^2$ value for this model was only 0.03 which means that a lot of the variability of the dataset is unaccounted by the model. If we were to recreate the model, we would heavily consider removing the aformentioned variables since they do not exhibit statistical significance or improve $R^2$.
+Something else we can note from this model is that it also tells us that all of these factors are statistically significant at the 0.05 $\alpha$ level. This is an indicator that these variables perhaps do not add much predictive value. Furthermore, the $R^2$ value for this model was only 0.03 which means that a lot of the variability of the dataset is unaccounted by the model. If we were to recreate the model, we would heavily consider removing the aformentioned variables since they do not exhibit statistical significance or improve $R^2$.
 
 ###Cross-Validation
 
@@ -133,7 +134,7 @@ median(NHANES$BMI, na.rm = TRUE) # median of BMI values
 rsquared <- 1 - sum(test2$sqerror)/sum((test2$BMI - mean(test2$BMI))^2)
 ```
 
-The root mean squared error is 6.193 for the test set and 6.511 for the training set. This shows that the model performs similarly for both the data it was fitted for and the data it was tested against, although the rmse is slightly higher for the training set. While the performance is consistent across the two datasets, the rmse values are very high relative to the values that the BMI takes. The average value of BMI is around 26 which is only around 4 times as large as the rmse. Additionally, the $R^2$ value is 0.03247, which shows that only 3.247% of the variability in BMI is captured by the model. Overall, these measures show that the model is not a great fit for the data and that the actual predictive value of the model is not very good. I looked at the scatterplots of the different predictors against BMI but there seems to be a lot of noise. There doesn't seem to be an obvious relationship, so I believe that not even a transformation would help.
+The root mean squared error is `r rmseTest` for the test set and `r rmseTrain` for the training set. This shows that the model performs similarly for both the data it was fitted for and the data it was tested against, although the rmse is slightly higher for the training set. While the performance is consistent across the two datasets, the rmse values are very high relative to the values that the BMI takes. The average value of BMI is around 26 which is only around 4 times as large as the rmse. Additionally, the $R^2$ value of the model on the test set is `r rsquared`, which shows that only 2.513% of the variability in BMI is captured by the model. A Overall, these measures show that the model is not a great fit for the data and that the actual predictive value of the model is not very good. I looked at the scatterplots of the different predictors against BMI but there seems to be a lot of noise. There doesn't seem to be an obvious relationship, so I believe that not even a transformation would help.
 
 ##Model Assesment
 
@@ -147,29 +148,34 @@ To test the linearity assumption we look at scatterplots where a quantitative va
 
 ```{r, echo=FALSE}
 options(warn = -1)
-ggplot() + geom_point(aes(train$Age, residuals(mod))) +
+ggplot() + geom_point(aes(train$Age, residuals(mod)), size = .2) +
   xlab("Age") +
   ylab("Residuals") +
-  labs(title = "Age vs. Residuals")
+  labs(title = "Age vs. Residuals") +
+  stat_smooth(aes(train$Age, residuals(mod)))
 ```
 
-From this scatterplot, the residuals do seem to have roughly constant variance for all values of age, and that they are relatively symmetric across a horizontal line (although there are many more values with extreme positive residuals than extreme negative residuals). We say that the linearity condition is satisfied in this case.
+From this scatterplot, the residuals do seem to have roughly constant variance for all values of age, and that they are relatively symmetric across a horizontal line (although there are many more values with extreme positive residuals than extreme negative residuals and the points seem to follow a curve at the extreme values for age). We say that the linearity condition is tenuously satisfied in this case.
 
 ```{r, echo=FALSE}
-ggplot() + geom_point(aes(train$Poverty, residuals(mod))) +
+ggplot() + geom_point(aes(train$Poverty, residuals(mod)), size = .2) +
   xlab("Poverty Ratio") +
   ylab("Residuals") +
-  labs(title = "Poverty Ratio vs. Residuals")
+  labs(title = "Poverty Ratio vs. Residuals") +
+  stat_smooth(aes(train$Poverty, residuals(mod)))
 ```
+
+Here the residuals are symmetric across a horizontal line and there is no curvature to the point in the plot. We say that the linearity condition is satisfied between poverty ratio and BMI.
 
 ```{r, echo=FALSE}
-ggplot() + geom_point(aes(train$alcoholavg, residuals(mod))) +
+ggplot() + geom_point(aes(train$alcoholavg, residuals(mod)), size = .2) +
   xlab("Average Daily Alcohol Consumption") +
   ylab("Residuals") +
-  labs(title = "Average Daily Alcohol Consumption vs. Residuals")
+  labs(title = "Average Daily Alcohol Consumption vs. Residuals") +
+  stat_smooth(aes(train$alcoholavg, residuals(mod)))
 ```
 
-The linearity condition is not satisfied for the alcoholavg variable. Clearly the residual values are not symmetrically distributed across a horizontal line. In addition, there is a point with high leverage. It may be prudent to see what happens to the model if we remove this outlier.
+While the residuals values are symmetric across a horizontal line for each value of alcoholavg, the residuals become less and less variable as alcoholavg increases. Again, the linearity condition is under question in this case.
 
 ```{r, echo=FALSE}
 ggplot() + geom_boxplot(aes(train$PhysActive, residuals(mod))) +
@@ -185,7 +191,7 @@ ggplot() + geom_boxplot(aes(train$Gender, residuals(mod))) +
   labs(title = "Average Daily Alcohol Consumption vs. Residuals")
 ```
 
-For both categorical variables, the box plots for each group within the variables looks relatively the same. The distribution 
+For both categorical variables, the box plots for each group within the variables looks relatively the same. There does not seem to be a large difference in the distribution of residuals within the levels of a categorical variable.
 
 *Normality*
 ```{r,fig.keep='last', fig.align='center', fig.width=5, fig.height=3}
@@ -197,15 +203,14 @@ Based on the qqplot above we can see that our model does not meet the normality 
 
 *Equal Variance*
 ```{r, echo=FALSE, fig.align='center', fig.width=5, fig.height=3}
-ggplot() + 
-  geom_point(aes(fitted(mod), residuals(mod))) + 
+ggplot() + geom_point(aes(fitted(mod), residuals(mod)), size = .2) + 
   geom_hline(yintercept = 0) +
   xlab("Fitted Values") +
   ylab("Residuals") +
   labs(title = "Residuals vs. Fitted Plot")
 ```
 
-The constant variance condition of errors does not hold. As the fitted values become larger, the variance of the residuals become larger and larger.
+The constant variance condition of errors does not hold. Although there are less points with smaller fitted values, the residuals are less variable for the smaller fitted values. As the fitted values become larger, the residuals become slightly more variable. However, there is a point where as the fitted values increase, the variance of the residuals decreases. 
 
 *Collinearity*
 
